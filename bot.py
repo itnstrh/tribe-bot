@@ -30,7 +30,7 @@ def start_keyboard():
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
-        "Мене цікавить:",
+        "Тебе цікавить:",
         reply_markup=start_keyboard()
     )
 
