@@ -69,7 +69,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "individual":
 
         text = (
-            "Індивідуальне пропрацювання страхів та"
+            "Індивідуальне пропрацювання страхів та "
             "зажимів з щоденними завданнями та супроводом.\n\n"
             "Також можливо це поєднати з просуванням вашого блогу."
         )
