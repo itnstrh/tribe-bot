@@ -16,7 +16,6 @@ from telegram.ext import (
 TOKEN = "8815394744:AAEW7W3kXzGxv0QjgRKpF_2iXOVwaj3vG7A"
 ADMIN_ID = 387155012
 
-# режим ответа клиенту
 reply_mode = {}
 
 
@@ -34,6 +33,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=start_keyboard()
     )
 
+
+# ===================== BUTTONS =====================
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -54,16 +55,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                "Хочу в племя",
-                callback_data="apply_tribe"
-            )]
+            [InlineKeyboardButton("Хочу в племя", callback_data="apply_tribe")]
         ])
 
-        await query.message.reply_text(
-            text,
-            reply_markup=keyboard
-        )
+        await query.message.reply_text(text, reply_markup=keyboard)
 
     # ===== ИНДИВИДУАЛЬНАЯ =====
     elif query.data == "individual":
@@ -75,31 +70,21 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                "Хочу",
-                callback_data="apply_individual"
-            )]
+            [InlineKeyboardButton("Хочу", callback_data="apply_individual")]
         ])
 
-        await query.message.reply_text(
-            text,
-            reply_markup=keyboard
-        )
+        await query.message.reply_text(text, reply_markup=keyboard)
 
-    # ===== ЗАЯВКА ПЛЕМЯ =====
+    # ===================== APPLY TRIBE =====================
+
     elif query.data == "apply_tribe":
 
-        username = (
-            f"@{user.username}"
-            if user.username
-            else "немає username"
-        )
+        username = f"@{user.username}" if user.username else "немає username"
+
+        reply_mode[user.id] = True
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                "Ответить клиенту",
-                callback_data=f"reply_{user.id}"
-            )]
+            [InlineKeyboardButton("Ответить клиенту", callback_data=f"reply_{user.id}")]
         ])
 
         await context.bot.send_message(
@@ -114,23 +99,20 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await query.message.reply_text(
-            "Заявка відправлена."
+            "Радий твоїй сміливості йти на страх. "
+            "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
         )
 
-    # ===== ЗАЯВКА ИНДИВИДУАЛЬНАЯ =====
+    # ===================== APPLY INDIVIDUAL =====================
+
     elif query.data == "apply_individual":
 
-        username = (
-            f"@{user.username}"
-            if user.username
-            else "немає username"
-        )
+        username = f"@{user.username}" if user.username else "немає username"
+
+        reply_mode[user.id] = True
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                "Ответить клиенту",
-                callback_data=f"reply_{user.id}"
-            )]
+            [InlineKeyboardButton("Ответить клиенту", callback_data=f"reply_{user.id}")]
         ])
 
         await context.bot.send_message(
@@ -145,35 +127,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await query.message.reply_text(
-            "Заявка відправлена."
+            "Радий твоїй сміливості йти на страх. "
+            "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
         )
 
-    # ===== ОТВЕТ КЛИЕНТУ =====
+    # ===================== ADMIN REPLY MODE =====================
+
     elif query.data.startswith("reply_"):
 
-        client_id = int(
-            query.data.split("_")[1]
-        )
+        client_id = int(query.data.split("_")[1])
 
         reply_mode[ADMIN_ID] = client_id
 
-        await query.message.reply_text(
-            "Напиши сообщение клиенту."
-        )
+        await query.message.reply_text("Напиши сообщение клиенту.")
 
 
-async def handle_message(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
+# ===================== UNIVERSAL MESSAGE HANDLER =====================
 
-    user_id = update.message.from_user.id
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    # только админ может отвечать
-    if (
-        user_id == ADMIN_ID
-        and user_id in reply_mode
-    ):
+    user = update.message.from_user
+    user_id = user.id
+
+    # ===== ADMIN REPLY =====
+    if user_id == ADMIN_ID and user_id in reply_mode:
 
         client_id = reply_mode[user_id]
 
@@ -182,31 +159,45 @@ async def handle_message(
             text=update.message.text
         )
 
-        await update.message.reply_text(
-            "Сообщение отправлено ✅"
-        )
+        await update.message.reply_text("Сообщение отправлено ✅")
 
         del reply_mode[user_id]
+        return
 
+    # ===== CLIENT MESSAGE (TEXT / VOICE / VIDEO_NOTE / AUDIO / ANYTHING) =====
+
+    if user_id != ADMIN_ID:
+
+        # отправка админу ВСЕХ сообщений
+        await context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=(
+                "📩 НОВОЕ СООБЩЕНИЕ\n\n"
+                f"Имя: {user.first_name}\n"
+                f"Username: @{user.username if user.username else 'нет'}\n"
+                f"ID: {user.id}"
+            )
+        )
+
+        await update.message.forward(chat_id=ADMIN_ID)
+
+        # авто-ответ клиенту
+        await update.message.reply_text(
+            "Дякую! Найближчим часом я перегляну і надішлю тобі програму й усі деталі"
+        )
+
+
+# ===================== MAIN =====================
 
 def main():
 
     app = Application.builder().token(TOKEN).build()
 
-    app.add_handler(
-        CommandHandler("start", start)
-    )
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
 
-    app.add_handler(
-        CallbackQueryHandler(button_handler)
-    )
-
-    app.add_handler(
-        MessageHandler(
-            filters.TEXT & ~filters.COMMAND,
-            handle_message
-        )
-    )
+    # важно: ловим ВСЁ
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
 
     print("Бот запущен...")
 
