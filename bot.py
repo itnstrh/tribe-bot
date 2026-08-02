@@ -234,7 +234,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # авто-ответ клиенту
         await update.message.reply_text(
-            "Дякую! Найближчим часом я перегляну і надішлю тобі програму й усі деталі"
+            "Дякую дуже! Згодом відпишу)"
         )
 
 
