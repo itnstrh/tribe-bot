@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
+from telegram.constants import ChatAction
 
 from telegram.ext import (
     Application,
@@ -19,7 +21,7 @@ from telegram.ext import (
 
 load_dotenv()
 
-TOKEN = os.getenv("BOT_TOKEN")
+TOKEN = os.getenv("BOT_TOKEN", "").strip()
 if not TOKEN:
     raise RuntimeError("Не задана переменная окружения BOT_TOKEN")
 
@@ -43,7 +45,11 @@ async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE)
     )
 
     with TRIBE_PDF.open("rb") as pdf:
-        await context.bot.send_document(chat_id=chat_id, document=pdf)
+        await context.bot.send_document(
+            chat_id=chat_id,
+            document=pdf,
+            filename="племя.pdf"
+        )
 
     for video_note_path in TRIBE_VIDEO_NOTES:
         with video_note_path.open("rb") as video_note:
@@ -138,6 +144,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Радий твоїй сміливості йти на страх. "
             "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
         )
+
+        await context.bot.send_chat_action(chat_id=user.id, action=ChatAction.TYPING)
+        await asyncio.sleep(5)
+        await context.bot.send_chat_action(chat_id=user.id, action=ChatAction.TYPING)
+        await asyncio.sleep(5)
 
         await send_tribe_materials(user.id, context)
 
