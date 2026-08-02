@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -13,10 +17,42 @@ from telegram.ext import (
     filters,
 )
 
-TOKEN = "8815394744:AAEW7W3kXzGxv0QjgRKpF_2iXOVwaj3vG7A"
+load_dotenv()
+
+TOKEN = os.getenv("BOT_TOKEN")
+if not TOKEN:
+    raise RuntimeError("Не задана переменная окружения BOT_TOKEN")
+
 ADMIN_ID = 387155012
 
 reply_mode = {}
+
+BASE_DIR = Path(__file__).resolve().parent
+TRIBE_PDF = BASE_DIR / "materials" / "tribe_presentation.pdf"
+TRIBE_VIDEO_NOTES = [
+    BASE_DIR / "materials" / "tribe_circle_1.mp4",
+    BASE_DIR / "materials" / "tribe_circle_2.mp4",
+    BASE_DIR / "materials" / "tribe_circle_3.mp4",
+]
+
+
+async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text="Також надсилаю тобі презентацію та програму племені"
+    )
+
+    with TRIBE_PDF.open("rb") as pdf:
+        await context.bot.send_document(chat_id=chat_id, document=pdf)
+
+    for video_note_path in TRIBE_VIDEO_NOTES:
+        with video_note_path.open("rb") as video_note:
+            await context.bot.send_video_note(chat_id=chat_id, video_note=video_note)
+
+    await context.bot.send_message(
+        chat_id=chat_id,
+        text="Тепер чекаю на твій кружечок) Якщо є якісь питання — пиши"
+    )
 
 
 def start_keyboard():
@@ -102,6 +138,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Радий твоїй сміливості йти на страх. "
             "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
         )
+
+        await send_tribe_materials(user.id, context)
 
     # ===================== APPLY INDIVIDUAL =====================
 
