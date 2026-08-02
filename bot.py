@@ -55,6 +55,8 @@ async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE)
         with video_note_path.open("rb") as video_note:
             await context.bot.send_video_note(chat_id=chat_id, video_note=video_note)
 
+    await asyncio.sleep(60)
+
     await context.bot.send_message(
         chat_id=chat_id,
         text="Тепер чекаю на твій кружечок) Якщо є якісь питання — пиши"
@@ -63,8 +65,8 @@ async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE)
 
 def start_keyboard():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("Племя", callback_data="tribe")],
-        [InlineKeyboardButton("Індивідуальна практика", callback_data="individual")]
+        [InlineKeyboardButton("племя", callback_data="tribe")],
+        [InlineKeyboardButton("індивідуальна практика", callback_data="individual")]
     ])
 
 
@@ -97,7 +99,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Хочу в племя", callback_data="apply_tribe")]
+            [InlineKeyboardButton("хочу в племя", callback_data="apply_tribe")]
         ])
 
         await query.message.reply_text(text, reply_markup=keyboard)
@@ -112,7 +114,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Хочу", callback_data="apply_individual")]
+            [InlineKeyboardButton("хочу", callback_data="apply_individual")]
         ])
 
         await query.message.reply_text(text, reply_markup=keyboard)
@@ -126,7 +128,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_mode[user.id] = True
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Ответить клиенту", callback_data=f"reply_{user.id}")]
+            [InlineKeyboardButton("ответить клиенту", callback_data=f"reply_{user.id}")]
         ])
 
         await context.bot.send_message(
@@ -161,7 +163,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_mode[user.id] = True
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("Ответить клиенту", callback_data=f"reply_{user.id}")]
+            [InlineKeyboardButton("ответить клиенту", callback_data=f"reply_{user.id}")]
         ])
 
         await context.bot.send_message(
