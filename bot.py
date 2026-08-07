@@ -205,10 +205,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         client_id = reply_mode[user_id]
 
-        await context.bot.send_message(
-            chat_id=client_id,
-            text=update.message.text
-        )
+        await update.message.copy(chat_id=client_id)
 
         await update.message.reply_text("Сообщение отправлено ✅")
 
