@@ -63,6 +63,15 @@ async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE)
     )
 
 
+async def send_tribe_sequence(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+    await asyncio.sleep(5)
+    await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
+    await asyncio.sleep(5)
+
+    await send_tribe_materials(chat_id, context)
+
+
 def start_keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("племя", callback_data="tribe")],
@@ -147,12 +156,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
         )
 
-        await context.bot.send_chat_action(chat_id=user.id, action=ChatAction.TYPING)
-        await asyncio.sleep(5)
-        await context.bot.send_chat_action(chat_id=user.id, action=ChatAction.TYPING)
-        await asyncio.sleep(5)
-
-        await send_tribe_materials(user.id, context)
+        context.application.create_task(
+            send_tribe_sequence(user.id, context),
+            update=update
+        )
 
     # ===================== APPLY INDIVIDUAL =====================
 
