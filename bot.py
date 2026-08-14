@@ -30,28 +30,101 @@ ADMIN_ID = 387155012
 reply_mode = {}
 
 BASE_DIR = Path(__file__).resolve().parent
-TRIBE_PDF = BASE_DIR / "materials" / "tribe_presentation.pdf"
-TRIBE_VIDEO_NOTES = [
-    BASE_DIR / "materials" / "tribe_circle_1.mp4",
-    BASE_DIR / "materials" / "tribe_circle_2.mp4",
-    BASE_DIR / "materials" / "tribe_circle_3.mp4",
-]
+TRIBE_MATERIALS = {
+    "uk": {
+        "pdf": BASE_DIR / "materials" / "uk" / "tribe_presentation.pdf",
+        "videos": [
+            BASE_DIR / "materials" / "uk" / f"tribe_circle_{number}.mp4"
+            for number in range(1, 4)
+        ],
+    },
+    "ru": {
+        "pdf": BASE_DIR / "materials" / "ru" / "tribe_presentation.pdf",
+        "videos": [BASE_DIR / "materials" / "ru" / "tribe_circle_1.mp4"],
+    },
+}
+
+TEXTS = {
+    "uk": {
+        "interest": "Тебе цікавить:",
+        "tribe_button": "племя",
+        "individual_button": "індивідуальна практика",
+        "tribe_description": (
+            "Племя — це спільнота тих, хто разом йде на страх. "
+            "Для того, щоб здобути свою справжню силу, свободу, "
+            "перестати залежати від думки інших і жити своє найкраще життя.\n\n"
+            "Щоденні завдання, обмін рефлексією і практичні "
+            "онлайн-зустрічі протягом 4х тижнів."
+        ),
+        "individual_description": (
+            "Індивідуальне пропрацювання страхів та "
+            "зажимів з щоденними завданнями та супроводом.\n\n"
+            "Також можливо це поєднати з просуванням вашого блогу."
+        ),
+        "apply_tribe_button": "хочу в племя",
+        "apply_individual_button": "хочу",
+        "courage": (
+            "Радий твоїй сміливості йти на страх. "
+            "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
+        ),
+        "materials": "Також надсилаю тобі презентацію та програму племені",
+        "final": "Тепер чекаю на твій кружечок) Якщо є якісь питання — пиши",
+        "auto_reply": "Дякую дуже! Згодом відпишу)",
+    },
+    "ru": {
+        "interest": "Тебя интересует:",
+        "tribe_button": "племя",
+        "individual_button": "индивидуальная практика",
+        "tribe_description": (
+            "Племя — это сообщество тех, кто вместе идёт навстречу страху. "
+            "Чтобы обрести свою настоящую силу и свободу, перестать зависеть "
+            "от мнения других и жить свою лучшую жизнь.\n\n"
+            "Ежедневные задания, обмен рефлексией и практические "
+            "онлайн-встречи в течение 4 недель."
+        ),
+        "individual_description": (
+            "Индивидуальная проработка страхов и зажимов с ежедневными "
+            "заданиями и сопровождением.\n\n"
+            "Также это можно совместить с продвижением вашего блога."
+        ),
+        "apply_tribe_button": "хочу в племя",
+        "apply_individual_button": "хочу",
+        "courage": (
+            "Рад твоей смелости идти навстречу страху. "
+            "Можешь, пожалуйста, рассказать кружочком о себе и своих запросах/страхах?"
+        ),
+        "materials": "Также отправляю тебе презентацию и программу племени",
+        "final": "Теперь жду твой кружочек) Если есть какие-то вопросы — пиши",
+        "auto_reply": "Спасибо большое! Позже отвечу)",
+    },
+}
 
 
-async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+def get_language(context: ContextTypes.DEFAULT_TYPE):
+    return context.user_data.get("language", "uk")
+
+
+async def send_tribe_materials(
+    chat_id: int,
+    context: ContextTypes.DEFAULT_TYPE,
+    language: str,
+):
+    texts = TEXTS[language]
+    materials = TRIBE_MATERIALS[language]
+
     await context.bot.send_message(
         chat_id=chat_id,
-        text="Також надсилаю тобі презентацію та програму племені"
+        text=texts["materials"]
     )
 
-    with TRIBE_PDF.open("rb") as pdf:
+    with materials["pdf"].open("rb") as pdf:
         await context.bot.send_document(
             chat_id=chat_id,
             document=pdf,
             filename="племя.pdf"
         )
 
-    for video_note_path in TRIBE_VIDEO_NOTES:
+    for video_note_path in materials["videos"]:
         with video_note_path.open("rb") as video_note:
             await context.bot.send_video_note(chat_id=chat_id, video_note=video_note)
 
@@ -59,31 +132,43 @@ async def send_tribe_materials(chat_id: int, context: ContextTypes.DEFAULT_TYPE)
 
     await context.bot.send_message(
         chat_id=chat_id,
-        text="Тепер чекаю на твій кружечок) Якщо є якісь питання — пиши"
+        text=texts["final"]
     )
 
 
-async def send_tribe_sequence(chat_id: int, context: ContextTypes.DEFAULT_TYPE):
+async def send_tribe_sequence(
+    chat_id: int,
+    context: ContextTypes.DEFAULT_TYPE,
+    language: str,
+):
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     await asyncio.sleep(5)
     await context.bot.send_chat_action(chat_id=chat_id, action=ChatAction.TYPING)
     await asyncio.sleep(5)
 
-    await send_tribe_materials(chat_id, context)
+    await send_tribe_materials(chat_id, context, language)
 
 
-def start_keyboard():
+def language_keyboard():
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("племя", callback_data="tribe")],
-        [InlineKeyboardButton("індивідуальна практика", callback_data="individual")]
+        [InlineKeyboardButton("українська", callback_data="language_uk")],
+        [InlineKeyboardButton("русский", callback_data="language_ru")],
+    ])
+
+
+def start_keyboard(language: str):
+    texts = TEXTS[language]
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton(texts["tribe_button"], callback_data="tribe")],
+        [InlineKeyboardButton(texts["individual_button"], callback_data="individual")]
     ])
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
-        "Тебе цікавить:",
-        reply_markup=start_keyboard()
+        "Обери мову / Выбери язык:",
+        reply_markup=language_keyboard()
     )
 
 
@@ -95,38 +180,37 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     user = query.from_user
+    language = get_language(context)
+    texts = TEXTS[language]
+
+    if query.data.startswith("language_"):
+        language = query.data.removeprefix("language_")
+        context.user_data["language"] = language
+        texts = TEXTS[language]
+
+        await query.message.reply_text(
+            texts["interest"],
+            reply_markup=start_keyboard(language)
+        )
+        return
 
     # ===== ПЛЕМЯ =====
     if query.data == "tribe":
 
-        text = (
-            "Племя — це спільнота тих, хто разом йде на страх. "
-            "Для того, щоб здобути свою справжню силу, свободу, "
-            "перестати залежати від думки інших і жити своє найкраще життя.\n\n"
-            "Щоденні завдання, обмін рефлексією і практичні "
-            "онлайн-зустрічі протягом 4х тижнів."
-        )
-
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("хочу в племя", callback_data="apply_tribe")]
+            [InlineKeyboardButton(texts["apply_tribe_button"], callback_data="apply_tribe")]
         ])
 
-        await query.message.reply_text(text, reply_markup=keyboard)
+        await query.message.reply_text(texts["tribe_description"], reply_markup=keyboard)
 
     # ===== ИНДИВИДУАЛЬНАЯ =====
     elif query.data == "individual":
 
-        text = (
-            "Індивідуальне пропрацювання страхів та "
-            "зажимів з щоденними завданнями та супроводом.\n\n"
-            "Також можливо це поєднати з просуванням вашого блогу."
-        )
-
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("хочу", callback_data="apply_individual")]
+            [InlineKeyboardButton(texts["apply_individual_button"], callback_data="apply_individual")]
         ])
 
-        await query.message.reply_text(text, reply_markup=keyboard)
+        await query.message.reply_text(texts["individual_description"], reply_markup=keyboard)
 
     # ===================== APPLY TRIBE =====================
 
@@ -152,12 +236,11 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await query.message.reply_text(
-            "Радий твоїй сміливості йти на страх. "
-            "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
+            texts["courage"]
         )
 
         context.application.create_task(
-            send_tribe_sequence(user.id, context),
+            send_tribe_sequence(user.id, context, language),
             update=update
         )
 
@@ -185,8 +268,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         await query.message.reply_text(
-            "Радий твоїй сміливості йти на страх. "
-            "Можеш розповісти, будь ласка, кружечком про себе і свої запити/страхи?"
+            texts["courage"]
         )
 
     # ===================== ADMIN REPLY MODE =====================
@@ -238,7 +320,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         # авто-ответ клиенту
         await update.message.reply_text(
-            "Дякую дуже! Згодом відпишу)"
+            TEXTS[get_language(context)]["auto_reply"]
         )
 
 
