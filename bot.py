@@ -61,6 +61,7 @@ TEXTS = {
             "зажимів з щоденними завданнями та супроводом.\n\n"
             "Також можливо це поєднати з просуванням вашого блогу."
         ),
+        "individual_details": "Тут усі деталі та ціни: https://itnstrh.com/",
         "apply_tribe_button": "хочу в племя",
         "apply_individual_button": "хочу",
         "courage": (
@@ -87,6 +88,7 @@ TEXTS = {
             "заданиями и сопровождением.\n\n"
             "Также это можно совместить с продвижением вашего блога."
         ),
+        "individual_details": "Тут все детали и цены: https://itnstrh.com/",
         "apply_tribe_button": "хочу в племя",
         "apply_individual_button": "хочу",
         "courage": (
@@ -98,6 +100,20 @@ TEXTS = {
         "auto_reply": "Спасибо большое! Позже отвечу)",
     },
 }
+
+START_INTRO = (
+    "Это бот для прохождения отбора в Племя. Племя — это сообщество тех, "
+    "кто вместе идет на страх, чтобы обрести легкость, свободу от чужого "
+    "мнения и свой внутренний стержень. Также если вы супер-пупер "
+    "нарцисс-индивидуалист — здесь можно записаться на индивидуальную "
+    "практику...\n\n"
+    "_______________________________\n\n"
+    "Це бот для проходження відбору в Племя. Племя — це спільнота тих, "
+    "хто разом іде на страх, щоб здобути легкість, свободу від чужої думки "
+    "та свій внутрішній стрижень. Також якщо ви супер-пупер "
+    "нарцис-індивідуаліст — тут можна записатися на індивідуальну "
+    "практику..."
+)
 
 
 def get_language(context: ContextTypes.DEFAULT_TYPE):
@@ -166,6 +182,8 @@ def start_keyboard(language: str):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+    await update.message.reply_text(START_INTRO)
+
     await update.message.reply_text(
         "Обери мову / Выбери язык:",
         reply_markup=language_keyboard()
@@ -211,6 +229,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ])
 
         await query.message.reply_text(texts["individual_description"], reply_markup=keyboard)
+        await query.message.reply_text(texts["individual_details"])
 
     # ===================== APPLY TRIBE =====================
 
